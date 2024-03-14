@@ -1,0 +1,38 @@
+const Discord = require('discord.js');
+const TwitchApi = require('twitch-api');
+const cron = require('cron');
+
+const client = new Discord.Client();
+const twitchApi = new TwitchApi({clientId: 'YOUR_TWITCH_CLIENT_ID'});
+
+const twitchUsername = 'TWITCH_USERNAME';
+const discordChannelId = 'DISCORD_CHANNEL_ID';
+
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+    // Ogni minuto, controlla se l'utente Twitch è in live
+    const checkLiveStatus = new cron.CronJob('0 */1 * * * *', function() {
+        checkTwitchLiveStatus();
+    });
+    checkLiveStatus.start();
+});
+
+async function checkTwitchLiveStatus() {
+    try {
+        const streams = await twitchApi.getStreams(twitchUsername);
+        if (streams && streams.length > 0) {
+            // Se lo stream è in corso, invia una notifica su Discord
+            const embed = new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setTitle(`${twitchUsername} è in live su Twitch!`)
+                .setDescription(`Guarda lo stream [qui](https://www.twitch.tv/${twitchUsername})`)
+                .setTimestamp();
+            const channel = await client.channels.fetch(discordChannelId);
+            channel.send(embed);
+        }
+    } catch (error) {
+        console.error('Errore nel controllare lo stato di live su Twitch:', error);
+    }
+}
+
+client.login('YOUR_DISCORD_BOT_TOKEN');
