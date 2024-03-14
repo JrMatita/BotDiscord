@@ -1,0 +1,5 @@
+Remember to replace YOUR_TWITCH_CLIENT_ID, TWITCH_USERNAME, DISCORD_CHANNEL_ID and YOUR_DISCORD_BOT_TOKEN with your real data. YOUR_TWITCH_CLIENT_ID is your Twitch client ID, 
+which you can get by registering a new application at https://dev.twitch.tv/console. TWITCH_USERNAME is the Twitch username of the person you want to receive notifications
+from.DISCORD_CHANNEL_ID is the ID of the Discord channel where you want to send notifications. 
+YOUR_DISCORD_BOT_TOKEN is your Discord bot token, which you can get by creating a bot at https://discord.com/developers/applications.
+then run this command: npm install discord.js twitch-api cron
