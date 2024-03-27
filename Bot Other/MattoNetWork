@@ -1,0 +1,63 @@
+import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import javax.security.auth.login.LoginException;
+import java.sql.*;
+
+public class MattoNetwork extends ListenerAdapter {
+    // Definire le credenziali del database
+    private static final String URL = "jdbc:mysql://localhost:3306/mattonetwork";
+    private static final String USER = "username";
+    private static final String PASSWORD = "password";
+
+    // Metodo main per avviare il bot
+    public static void main(String[] args) throws LoginException, ClassNotFoundException, SQLException {
+        JDABuilder.createDefault("YOUR_DISCORD_BOT_TOKEN")
+                .addEventListeners(new MattoNetwork())
+                .build();
+        // Connessione al database
+        Class.forName("com.mysql.cj.jdbc.Driver");
+        Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+        System.out.println("Connesso al database");
+    }
+
+    @Override
+    public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
+        // Ottenere il messaggio e l'utente che lo ha inviato
+        String message = event.getMessage().getContentRaw();
+        User author = event.getAuthor();
+
+        // Esempio di comando per gestire una richiesta di aiuto
+        if (message.equalsIgnoreCase("!help")) {
+            event.getChannel().sendMessage(author.getAsMention() + ", hai bisogno di aiuto?").queue();
+        }
+
+        // Esempio di comando per aggiungere un utente al database
+        if (message.startsWith("!addUser")) {
+            try {
+                String[] params = message.split(" ");
+                if (params.length == 2) {
+                    String username = params[1];
+                    addUserToDatabase(username);
+                    event.getChannel().sendMessage("Utente " + username + " aggiunto al database!").queue();
+                } else {
+                    event.getChannel().sendMessage("Utilizzo corretto: !addUser <username>").queue();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                event.getChannel().sendMessage("Si è verificato un errore durante l'aggiunta dell'utente al database.").queue();
+            }
+        }
+    }
+
+    // Metodo per aggiungere un utente al database
+    private void addUserToDatabase(String username) throws SQLException {
+        String query = "INSERT INTO users (username) VALUES (?)";
+        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, username);
+            statement.executeUpdate();
+        }
+    }
+}
